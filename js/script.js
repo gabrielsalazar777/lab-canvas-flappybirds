@@ -16,16 +16,20 @@ let animationId;
 let gameOn = false;
 let obstacleId;
 let obstacleArray = [];
+let score = 0;
 
 class Obstacle {
   constructor() {
-    this.gap = 100;
+    this.gap = 200;
     this.x = canvas.width;
     this.y = Math.random() * (canvas.height - this.gap);
     this.bottomY = this.y + this.gap;
+    this.width = 138;
   }
   draw() {
     ctx.drawImage(obstacleBottomImg, this.x, this.bottomY);
+    ctx.drawImage(obstacleTopImg, this.x, this.y - obstacleTopImg.height);
+    // ctx.drawImage(obstacleTopImg, this.x, -this.bottomY - 300);
   }
 
   update() {
@@ -81,23 +85,74 @@ function generateObstacles() {
   obstacleArray.push(new Obstacle());
 }
 
+function gameOver() {
+  // faby.speedY = 0;
+  // faby.y = 200
+  obstacleArray = [];
+  clearInterval(animationId);
+  clearInterval(obstacleId);
+  ctx.clearRect(0, 0, 1200, 600);
+  gameOn = false;
+  ctx.fillStyle = "black";
+  ctx.font = "40px Arial";
+  ctx.fillText("Game Over", 450, 250);
+  ctx.fillStyle = "black";
+
+  ctx.fillText(`Final Score: ${score}`, 450, 300);
+}
+
+function checkCollision(object) {
+  // if (faby.x < object.x + object.width
+  //   && faby.x + faby.width > object.x) {
+  //     if (faby.y <= object.y) {
+  //       faby.y += 20;
+  //     }
+  //     if (faby.y + faby.height >= object.bottomY) {
+  //       faby.y -= 20;
+  //     }
+  //   }
+  if (
+    faby.x < object.x + object.width &&
+    faby.x + faby.width > object.x &&
+    !(faby.y > object.y && faby.y + faby.height < object.bottomY)
+  ) {
+    gameOver();
+  }
+}
+
 function animationLoop() {
   ctx.clearRect(0, 0, 1200, 600);
   ctx.drawImage(background, 0, 0, 1200, 600);
   faby.update();
   obstacleArray.forEach((obstacle, i, arr) => {
-    if (obstacle.x < 0) {
-      arr.splice(i, 1);
-    }
     obstacle.update();
     obstacle.draw();
+    checkCollision(obstacle);
+    if (obstacle.x + obstacle.width < 0) {
+      arr.splice(i, 1);
+      score += 1;
+    }
+    ctx.fillStyle = "black";
+    ctx.fillRect(20, 20, 100, 50);
+    ctx.fillStyle = "white";
+    ctx.font = "15px Arial white";
+    ctx.fillText(`Score: ${score}`, 40, 50, 100);
   });
+
+  // for (let i=0; i < obstacleArray.length, i++;) {
+  //   obstacleArray[i].update();
+  //   obstacleArray[i].draw();
+  //   checkCollision(obstacleArray[i]);
+  //   if (obstacleArray[i].x + obstacleArray[i].width < 0) {
+  //     arr.splice(i, 1);
+  //   }
+  // }
 }
 
 function startGame() {
   console.log("starting");
   animationId = setInterval(animationLoop, 16);
-  obstacleId = setInterval(generateObstacles, 5000);
+  obstacleId = setInterval(generateObstacles, 3000);
 }
 
 window.onload = function () {
@@ -120,6 +175,9 @@ window.onload = function () {
     }
   };
   document.addEventListener("keydown", (e) => {
-    faby.newPosition(e);
+    e.preventDefault();
+    if (gameOn) {
+      faby.newPosition(e);
+    }
   });
 };
