@@ -7,8 +7,31 @@ background.src = "/images/bg.png";
 const fabyImg = new Image();
 fabyImg.src = "/images/flappy.png";
 
+const obstacleTopImg = new Image();
+obstacleTopImg.src = "/images/obstacle_top.png";
+const obstacleBottomImg = new Image();
+obstacleBottomImg.src = "/images/obstacle_bottom.png";
+
 let animationId;
 let gameOn = false;
+let obstacleId;
+let obstacleArray = [];
+
+class Obstacle {
+  constructor() {
+    this.gap = 100;
+    this.x = canvas.width;
+    this.y = Math.random() * (canvas.height - this.gap);
+    this.bottomY = this.y + this.gap;
+  }
+  draw() {
+    ctx.drawImage(obstacleBottomImg, this.x, this.bottomY);
+  }
+
+  update() {
+    this.x -= 2;
+  }
+}
 
 const faby = {
   x: 400,
@@ -54,15 +77,27 @@ const faby = {
   },
 };
 
+function generateObstacles() {
+  obstacleArray.push(new Obstacle());
+}
+
 function animationLoop() {
   ctx.clearRect(0, 0, 1200, 600);
   ctx.drawImage(background, 0, 0, 1200, 600);
   faby.update();
+  obstacleArray.forEach((obstacle, i, arr) => {
+    if (obstacle.x < 0) {
+      arr.splice(i, 1);
+    }
+    obstacle.update();
+    obstacle.draw();
+  });
 }
 
 function startGame() {
   console.log("starting");
   animationId = setInterval(animationLoop, 16);
+  obstacleId = setInterval(generateObstacles, 5000);
 }
 
 window.onload = function () {
